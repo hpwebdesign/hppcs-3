@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="utf-8"?>
+<modification>
+  <name>Product Condition</name>
+  <code>ProductCondition</code>
+  <version>3.0</version>
+  <author>HP Web Design</author>
+  <link>http://hpwebdesign.id</link>
+
+<file path="admin/language/en-gb/catalog/product.php">
+    <operation error="skip">
+      <search><![CDATA[// Entry]]> </search>
+      <add position="after">
+        <![CDATA[
+    $_['entry_condition']   = 'Product Condition';
+    $_['text_new']      = 'New';
+    $_['text_second']   = 'Used (2nd)';
+    ]]>
+      </add>
+    </operation>
+  </file>
+    <file path="admin/language/id-id/catalog/product.php">
+    <operation error="skip">
+      <search><![CDATA[// Entry]]> </search>
+      <add position="after">
+        <![CDATA[
+    $_['entry_condition']   = 'Kondisi Produk';
+    $_['text_new']      = 'Baru';
+    $_['text_second']   = 'Bekas';
+    ]]>
+      </add>
+    </operation>
+  </file>
+    <file path="catalog/language/en-gb/product/product.php">
+    <operation error="skip">
+      <search><![CDATA[// Text]]> </search>
+      <add position="after">
+        <![CDATA[
+        $_['text_product_condition'] = 'Product Condition:'; 
+        $_['text_new']      = 'New';
+        $_['text_second']   = 'Used (2nd)';]]>
+      </add>
+    </operation>
+  </file>      
+<file path="catalog/language/id-id/product/product.php">
+    <operation error="skip">
+      <search><![CDATA[// Text]]> </search>
+      <add position="after">
+        <![CDATA[
+    $_['text_product_condition'] = 'Kondisi Produk: ';
+    $_['text_new']      = 'Baru';
+    $_['text_second']   = 'Bekas';]]>
+      </add>
+    </operation>
+  </file>  
+<file path="system/library/cart/cart.php">
+    <operation error="skip">
+      <search><![CDATA['minimum'         => $product_query->row['minimum'],]]> </search>
+      <add position="after">
+        <![CDATA['product_condition'     => $product_query->row['product_condition'],]]>
+      </add>
+    </operation>
+  </file>    
+
+    <file path="admin/model/catalog/product.php">
+    <operation error="skip">
+      <search><![CDATA[if (isset($data['product_store'])) {]]> </search>
+      <add position="after">
+        <![CDATA[
+        if (isset($data['product_condition'])) {
+			$this->db->query("UPDATE " . DB_PREFIX . "product SET product_condition = '" . (int)$data['product_condition'] . "' WHERE product_id = '" . (int)$product_id . "'");
+		} ]]>
+      </add>
+    </operation>
+  </file>
+<file path="admin/controller/catalog/product.php">
+    <operation error="skip">
+      <search><![CDATA[protected function getList() {]]> </search>
+      <add position="after">
+        <![CDATA[
+        $query = $this->db->query("SHOW COLUMNS FROM `".DB_PREFIX."product` LIKE '%condition%';");
+		if(!$query->num_rows) {
+            $this->db->query(" ALTER TABLE `" . DB_PREFIX . "product` ADD product_condition int(1) NOT NULL DEFAULT 1 AFTER product_id");
+        }  
+    ]]>
+      </add>
+    </operation> 
+<operation error="skip">
+      <search><![CDATA[$data['entry_minimum'] = $this->language->get('entry_minimum');]]> </search>
+      <add position="after">
+        <![CDATA[
+    $data['entry_condition'] = $this->language->get('entry_condition');
+    $data['text_new'] = $this->language->get('text_new');
+    $data['text_second'] = $this->language->get('text_second');
+    ]]>
+      </add>
+    </operation>
+        <operation error="skip">
+      <search><![CDATA[if (isset($this->request->post['minimum'])) {]]> </search>
+      <add position="before">
+        <![CDATA[
+        if (isset($this->request->post['product_condition'])) {
+			$data['product_condition'] = $this->request->post['product_condition'];
+		} elseif (!empty($product_info)) {
+			$data['product_condition'] = (int)$product_info['product_condition'];
+		} else {
+			$data['product_condition'] = 1;
+		}
+    ]]>
+      </add>
+    </operation>
+  </file>
+<file path="admin/view/template/catalog/product_form.twig">
+    <operation error="skip">
+      <search><![CDATA[$('input[name=\'category\']').autocomplete({]]> </search>
+      <add position="before">
+        <![CDATA[
+html = '<div class="form-group"><label class="col-sm-2 control-label" for="input-status">{{ entry_condition }}</label><div class="col-sm-10">';
+html += '<select name="product_condition" id="input-status" class="form-control">{% if product_condition %}<option value="1" selected="selected">{{ text_new }}</option><option value="0">{{ text_second }}</option>{% else %}';
+html += '<option value="1">{{ text_new }}</option><option value="0" selected="selected">{{ text_second }}</option>{% endif %}';
+html +='</select></div></div>';
+
+$('input[name=\'price\']').parent().parent().before(html); ]]></add>
+    </operation>
+  </file>
+   <file path="catalog/controller/product/product.php">
+    <operation error="skip">
+      <search><![CDATA[if ($product_info['minimum']) {]]> </search>
+      <add position="before">
+        <![CDATA[
+            if ($product_info['product_condition']) {
+				$data['product_condition'] = $product_info['product_condition'];
+			} else {
+				$data['product_condition'] = 0;
+			} ]]>
+      </add>
+    </operation>  
+    <operation error="skip">
+      <search><![CDATA[$data['manufacturer'] = $product_info['manufacturer'];]]> </search>
+      <add position="after">
+        <![CDATA[
+        $data['text_product_condition'] = $this->language->get('text_product_condition');
+        $data['text_new'] = $this->language->get('text_new');
+        $data['text_second'] = $this->language->get('text_second');
+        ]]>
+      </add>
+    </operation> 
+    </file> 
+    
+<file path="catalog/view/theme/*/template/product/product.twig">
+    <operation error="skip">
+      <search><![CDATA[<h1>{{ heading_title }}</h1>]]> </search>
+      <add position="after">
+        <![CDATA[<span>{{ text_product_condition }}</span> 
+{% if product_condition %}
+<span class="baru">{{ text_new }}</span>
+{% else %}
+<span class="bekas">{{ text_second }}</span>
+{% endif %}
+<br />]]>
+      </add>
+    </operation> 
+    </file>
+    
+<file path="catalog/view/theme/so-shoppystore/template/product/product.twig">
+    <operation error="skip">
+      <search><![CDATA[<h1 itemprop="name">{{heading_title}}</h1>]]> </search>
+      <add position="after">
+        <![CDATA[<span>{{ text_product_condition }}</span> 
+{% if product_condition %}
+<span class="baru">{{ text_new }}</span>
+{% else %}
+<span class="bekas">{{ text_second }}</span>
+{% endif %}
+<br />]]>
+      </add>
+    </operation> 
+    </file>
+    
+<file path="catalog/model/catalog/product.php">
+    <operation error="skip">
+      <search><![CDATA['date_modified'    => $query->row['date_modified'],]]> </search>
+      <add position="after">
+        <![CDATA['product_condition'    => $query->row['product_condition'],]]>
+      </add>
+    </operation> 
+</file>
+<file path="catalog/view/theme/*/template/common/header.twig">
+    <operation error="skip">
+        <search><![CDATA[</head>]]> </search>
+      <add position="before">
+        <![CDATA[
+        <style type="text/css">
+            .bekas {    color: #d63131;
+    background: #fff;
+    border: 1px solid #d63131;
+    text-transform: uppercase;
+    padding: 7px 7px;
+        }
+  .baru {    color: #69BB00;
+    background: #fff;
+    border: 1px solid #69BB00;
+    text-transform: uppercase;
+    padding: 7px 7px;
+        }
+            </style>
+]]> </add>
+    </operation> 
+</file>
+</modification>
